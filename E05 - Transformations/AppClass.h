@@ -20,8 +20,8 @@ using namespace BTX;
 
 class Application
 {
-	uint m_uMeshCount = 10;
-	MyMesh* m_pMesh;
+	static const uint m_uMeshCount = 46;
+	MyMesh* m_pMeshList[m_uMeshCount]; 
 private:
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 	static ImGuiObject gui; //GUI object

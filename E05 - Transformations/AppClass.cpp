@@ -9,9 +9,11 @@ void Application::InitVariables(void)
 	m_pCameraMngr->SetPositionTargetAndUpward(v3Position, v3Target, v3Upward);
 
 	//Allocate the memory for the Meshes
-	m_pMesh = new MyMesh();
-	m_pMesh->GenerateCube(1.0f, C_BLACK);
-		
+	for (int i = 0; i < m_uMeshCount; i++)
+	{
+		m_pMeshList[i] = new MyMesh();
+		m_pMeshList[i]->GenerateCube(1.0f, C_BLACK);
+	}	
 }
 void Application::Update(void)
 {
@@ -39,7 +41,122 @@ void Application::Display(void)
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix();
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix();
 
-	m_pMesh->Render(m4Projection, m4View, ToMatrix4(m_qArcBall));
+	float scaleFactor = 0.5f;
+	matrix4 m4Scale = glm::scale(ToMatrix4(m_qArcBall), vector3(scaleFactor));
+
+	static float translationFactor = 0.0f;
+	translationFactor += 0.01f;
+	matrix4 m4Translate = glm::translate(ToMatrix4(m_qArcBall),
+		vector3(translationFactor, 0.0f, 0.0f));
+
+	matrix4 m4Model = m4Scale * m4Translate;
+
+	int i = 0;
+
+	// row 1/8
+	for (int j = -5; j <= 5; j++) {
+		if (j != -3 && j != 3)
+		{
+			continue;
+		}
+		else
+		{
+			m_pMeshList[i]->Render(m4Projection, m4View, 
+				glm::translate(m4Model, vector3(j, 4.0f, 0.0f)));
+			i++;
+		}
+	}
+
+	// row 2/8
+	for (int j = -5; j <= 5; j++) {
+		if (j != -2 && j != 2)
+		{
+			continue;
+		}
+		else
+		{
+			m_pMeshList[i]->Render(m4Projection, m4View, 
+				glm::translate(m4Model, vector3(j, 3.0f, 0.0f)));
+			i++;
+		}
+	}
+
+	// row 3/8
+	for (int j = -5; j <= 5; j++) {
+		if (j == -5 || j == -4 || j == 4 || j == 5) 
+		{
+			continue;
+		}
+		else
+		{
+			m_pMeshList[i]->Render(m4Projection, m4View, 
+				glm::translate(m4Model, vector3(j, 2.0f, 0.0f)));
+			i++;
+		}
+	}
+
+	// row 4/8
+	for (int j = -5; j <= 5; j++) {
+		if (j == -5 || j == -2 || j == 2 || j == 5)
+		{
+			continue;
+		}
+		else
+		{
+			m_pMeshList[i]->Render(m4Projection, m4View,
+				glm::translate(m4Model, vector3(j, 1.0f, 0.0f)));
+			i++;
+		}
+	}
+
+	// row 5/8
+	for (int j = -5; j <= 5; j++) {
+		m_pMeshList[i]->Render(m4Projection, m4View, 
+			glm::translate(m4Model, vector3(j, 0.0f, 0.0f)));
+		i++;
+	}
+
+	// row 6/8
+	for (int j = -5; j <= 5; j++) {
+		if (j == -4 || j == 4)
+		{
+			continue;
+		}
+		else
+		{
+			m_pMeshList[i]->Render(m4Projection, m4View,
+				glm::translate(m4Model, vector3(j, -1.0f, 0.0f)));
+			i++;
+		}
+	}
+
+	// row 7/8
+	for (int j = -5; j <= 5; j++) {
+		if (j != -5 && j != -3 && j != 3 && j != 5)
+		{
+			continue;
+		}
+		else
+		{
+			m_pMeshList[i]->Render(m4Projection, m4View,
+				glm::translate(m4Model, vector3(j, -2.0f, 0.0f)));
+			i++;
+		}
+	}
+
+	// row 8/8
+	for (int j = -5; j <= 5; j++) {
+		if (j != -2 && j != -1 && j != 1 && j != 2)
+		{
+			continue;
+		}
+		else
+		{
+			m_pMeshList[i]->Render(m4Projection, m4View,
+				glm::translate(m4Model, vector3(j, -3.0f, 0.0f)));
+			i++;
+		}
+	}
 
 	// draw a skybox
 	m_pModelMngr->AddSkyboxToRenderList();
@@ -58,8 +175,11 @@ void Application::Display(void)
 }
 void Application::Release(void)
 {
-	//Release meshes
-	SafeDelete(m_pMesh);
+	//Release meshes 
+	for (int i = 0; i < m_uMeshCount; i++)
+	{
+		SafeDelete(m_pMeshList[i]);
+	}
 
 	//release GUI
 	ShutdownGUI();
