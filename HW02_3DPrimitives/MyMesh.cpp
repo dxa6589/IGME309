@@ -61,7 +61,29 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	
+	// angle increment per section
+	float angle = 0.0f;
+	float increment = 2 * PI / a_nSubdivisions;
+
+	float top = a_fHeight/2, btm = a_fHeight/-2;
+	vector3 v1 = vector3(a_fRadius, btm, 0.0f);
+	vector3 v2 = vector3(0.0f, btm, 0.0f);
+	vector3 circleCenter = vector3(0.0f, btm, 0.0f);
+	vector3 topCenter = vector3(0.0f, top, 0.0f);
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		angle += increment;
+		v2.x = circleCenter.x + (cos(angle) * a_fRadius);
+		v2.z = circleCenter.z + (sin(angle) * a_fRadius);
+
+		// add triangle for body
+		AddTri(topCenter, v2, v1);
+		// add triangle for base
+		AddTri(circleCenter, v1, v2);
+		v1 = v2;
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -85,7 +107,31 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+
+	// angle increment per section
+	float angle = 0.0f;
+	float increment = 2 * PI / a_nSubdivisions;
+
+	float top = a_fHeight / 2, btm = a_fHeight / -2;
+	float x1 = a_fRadius, z1 = 0.0f;
+	float x2 = 0.0f, z2 = 0.0f;
+	vector3 center = ZERO_V3;
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		angle += increment;
+		x2 = center.x + (cos(angle) * a_fRadius);
+		z2 = center.z + (sin(angle) * a_fRadius);
+
+		// add quad for body
+		AddQuad(vector3(x2, btm, z2), vector3(x1, btm, z1), vector3(x2, top, z2), vector3(x1, top, z1));
+		// add triangle for top
+		AddTri(vector3(0.0f, top, 0.0f), vector3(x2, top, z2), vector3(x1, top, z1));
+		// add triangle for base
+		AddTri(vector3(0.0f, btm, 0.0f), vector3(x1, btm, z1), vector3(x2, btm, z2));
+		x1 = x2;
+		z1 = z2;
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -115,7 +161,39 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+
+	// angle increment per section
+	float angle = 0.0f;
+	float increment = 2 * PI / a_nSubdivisions;
+
+	float top = a_fHeight / 2, btm = a_fHeight / -2;
+	float x1 = a_fOuterRadius, z1 = 0.0f;
+	float x2 = 0.0f, z2 = 0.0f;
+	float x3 = a_fInnerRadius, z3 = 0.0f;
+	float x4 = 0.0f, z4 = 0.0f;
+	vector3 center = ZERO_V3;
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		angle += increment;
+		x2 = center.x + (cos(angle) * a_fOuterRadius);
+		z2 = center.z + (sin(angle) * a_fOuterRadius);
+		x4 = center.x + (cos(angle) * a_fInnerRadius);
+		z4 = center.z + (sin(angle) * a_fInnerRadius);
+
+		// add quad for outer body
+		AddQuad(vector3(x2, btm, z2), vector3(x1, btm, z1), vector3(x2, top, z2), vector3(x1, top, z1));
+		// add quad for inner body
+		AddQuad(vector3(x4, top, z4), vector3(x3, top, z3), vector3(x4, btm, z4), vector3(x3, btm, z3));
+		// add quad for top
+		AddQuad(vector3(x3, top, z3), vector3(x4, top, z4), vector3(x1, top, z1), vector3(x2, top, z2));
+		// add quad for base
+		AddQuad(vector3(x1, btm, z1), vector3(x2, btm, z2), vector3(x3, btm, z3), vector3(x4, btm, z4));
+		x1 = x2;
+		z1 = z2;
+		x3 = x4;
+		z3 = z4;
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -147,7 +225,55 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+
+	// angle increment per section
+	float delta, theta = 0.0f;
+	float thetaIncr = 2 * PI / a_nSubdivisionsB;
+	// angle increment per axis section
+	float gammaIncr = 2 * PI / a_nSubdivisionsA;
+
+	// uncomment to match BTX radius usage
+	//a_fInnerRadius = (a_fOuterRadius - a_fInnerRadius) / 2;
+	//a_fOuterRadius = a_fOuterRadius + a_fInnerRadius;
+
+	for (int i = 0; i < a_nSubdivisionsB; i++)
+	{
+		delta = theta;
+		theta += thetaIncr;
+		float gamma = 0.0f;
+
+		vector3 v1, v2, v3, v4;
+		v1.x = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * cos(theta);
+		v1.y = sin(gamma) * a_fInnerRadius;
+		v1.z = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * sin(theta);
+		
+		v3.x = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * cos(delta);
+		v3.y = v1.y;
+		v3.z = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * sin(delta);
+
+		for (int j = 0; j < a_nSubdivisionsA; j++)
+		{
+			gamma += gammaIncr;
+
+			v2.x = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * cos(theta);
+			v2.y = sin(gamma) * a_fInnerRadius;
+			v2.z = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * sin(theta);
+
+			v4.x = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * cos(delta);
+			v4.y = v2.y;
+			v4.z = (a_fOuterRadius + (cos(gamma) * a_fInnerRadius)) * sin(delta);
+
+			AddQuad(v2, v1, v4, v3);
+
+			v1.x = v2.x;
+			v1.y = v2.y;
+			v1.z = v2.z;
+
+			v3.x = v4.x;
+			v3.y = v4.y;
+			v3.z = v4.z;
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -172,7 +298,43 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+
+	float delta, theta = 0.0f;
+	float thetaIncr = 2 * PI / a_nSubdivisions; // 360 deg increment
+	float gammaIncr = -PI / a_nSubdivisions; // 180 deg increment
+
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		delta = theta; // theta of previous iteration
+		theta += thetaIncr;
+		float gamma = PI / 2; // start at top of sphere
+		vector3 v1, v2, v3, v4;
+
+		for (int j = 0; j < a_nSubdivisions; j++)
+		{
+			gamma += gammaIncr;
+			if (j == 0)
+			{
+				v1 = a_fRadius * vector3(cos(delta) * cos(gamma), sin(gamma), sin(delta) * cos(gamma));
+				v3 = a_fRadius * vector3(cos(theta) * cos(gamma), sin(gamma), sin(theta) * cos(gamma));
+				// draw top triangle
+				AddTri(vector3(0.0f, a_fRadius, 0.0f), v1, v3);
+			}
+			else if (j < a_nSubdivisions-1)
+			{
+				v2 = a_fRadius * vector3(cos(delta) * cos(gamma), sin(gamma), sin(delta) * cos(gamma));
+				v4 = a_fRadius * vector3(cos(theta) * cos(gamma), sin(gamma), sin(theta) * cos(gamma));
+				// draw quad
+				AddQuad(v2, v4, v1, v3);
+				v1 = v2;
+				v3 = v4;
+			}
+			else
+			{
+				// draw bottom triangle
+				AddTri(vector3(0.0f, -a_fRadius, 0.0f), v4, v2);
+			}
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
