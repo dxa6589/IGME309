@@ -59,21 +59,30 @@ void Application::Display(void)
 		break;
 	case 2:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPerspective(false);
 		break;
 	case 3:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(30.0f, 0.0f, 0.0f));
+		m_pCamera->SetUp(-AXIS_Z);
 		break;
 	case 4:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0.0f, 0.0f, -15.0f));
 		break;
 	case 5:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0.0f, 0.0f, -15.0f));
+		m_pCamera->SetNearFar(vector2(5.0f, 15.0f));
 		break;
 	case 6:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetPosition(vector3(0.0f, 0.0f, -15.0f));
+		m_pCamera->SetNearFar(vector2(1.0f, 14.0f));
 		break;
 	case 7:
 		m_pCamera->ResetCamera();
+		m_pCamera->SetUp(-AXIS_Y);
 		break;
 	}
 
@@ -84,7 +93,7 @@ void Application::Display(void)
 	matrix4 m4View = m_pCamera->GetViewMatrix();
 
 
-	//draw the primitive
+	//draw the primitive red, green, blue
 	m_pMesh1->Render(m4Projection, m4View, glm::rotate(IDENTITY_M4, 1.5708f, AXIS_X));
 	m_pMesh2->Render(m4Projection, m4View, glm::translate(IDENTITY_M4, vector3(0.0f, 0.0f, -5.0f)) * glm::rotate(IDENTITY_M4, 1.5708f, AXIS_X));
 	m_pMesh3->Render(m4Projection, m4View, glm::translate(vector3(0.0f, 0.0f, -10.0f)));
