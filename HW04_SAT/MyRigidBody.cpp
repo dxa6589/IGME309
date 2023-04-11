@@ -6,6 +6,56 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	//TODO: Calculate the SAT algorithm I STRONGLY suggest you use the
 	//Real Time Collision detection algorithm for OBB here but feel free to
 	//implement your own solution.
+
+	matrix3 myAxes = glm::extractMatrixRotation(m_m4ToWorld);
+	matrix3 otherAxes = glm::extractMatrixRotation(a_pOther->GetModelMatrix());
+
+	vector3 otherHalfWidth = a_pOther->GetHalfWidth();
+	vector3 otherCen = a_pOther->GetCenterGlobal();
+
+	float ra, rb;
+	matrix3 R, AbsR;
+
+	// Compute rotation matrix
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			R[i][j] = glm::dot(myAxes[i], otherAxes[j]);
+		}
+	}
+
+	// translation vector
+	vector3 t = otherCen - m_v3Center;
+	t = vector3(glm::dot(t, myAxes[0]), glm::dot(t, myAxes[1]), glm::dot(t, myAxes[2]));
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			AbsR[i][j] = glm::abs(R[i][j]) + glm::epsilon<float>();
+		}
+	}
+
+	// Test axes
+	// Ax, Ay, Az
+	for (int i = 0; i < 3; i++) {
+		ra = m_v3HalfWidth[i];
+		rb = otherHalfWidth[0] * AbsR[i][0]
+			+ otherHalfWidth[1] * AbsR[i][1]
+			+ otherHalfWidth[2] * AbsR[i][2];
+		if (glm::abs(t[i]) > ra + rb) return false;
+	}	
+	// Bx, By, Bz
+	for (int i = 0; i < 3; i++) {
+		ra = m_v3HalfWidth[0] * AbsR[i][0]
+			+ m_v3HalfWidth[1] * AbsR[i][1]
+			+ m_v3HalfWidth[2] * AbsR[i][2];
+		rb = otherHalfWidth[i];
+		if (glm::abs(t[i]) > ra + rb) return false;
+	}	
+	// planes
+	// Ax*Bx Ax*By Ax*Bz
+	// Ay*Bx Ay*By Ay*Bz
+	// Az*Bx Az*By Az*Bz
+	// if 1 plane isn't colliding, return false
+	
 	return BTXs::eSATResults::SAT_NONE;
 }
 bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
