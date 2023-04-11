@@ -3,9 +3,11 @@ using namespace BTX;
 //  MyCamera
 void MyCamera::SetPositionTargetAndUpward(vector3 a_v3Position, vector3 a_v3Target, vector3 a_v3Upward)
 {
-	//TODO:: replace the super call with your functionality
 	//Tip: Changing any positional vector forces you to calculate new directional ones
-	super::SetPositionTargetAndUpward(a_v3Position, a_v3Target, a_v3Upward);
+
+	m_v3Position = a_v3Position;
+	m_v3Target = a_v3Target;
+	m_v3Upward = a_v3Upward;
 
 	//After changing any vectors you need to recalculate the MyCamera View matrix.
 	//While this is executed within the parent call above, when you remove that line
@@ -21,16 +23,25 @@ void MyCamera::MoveForward(float a_fDistance)
 	//		 in the _Binary folder you will notice that we are moving 
 	//		 backwards and we never get closer to the plane as we should 
 	//		 because as we are looking directly at it.
-	m_v3Position += vector3(0.0f, 0.0f, a_fDistance);
-	m_v3Target += vector3(0.0f, 0.0f, a_fDistance);
+
+	// position to/from target, orientation remains but target is moving
+	m_v3Position += m_v3Forward * a_fDistance;
+	m_v3Target += m_v3Forward * a_fDistance;
+	vector3 vec = glm::normalize(vector3(0, m_v3Target.y, m_v3Target.z));
 }
 void MyCamera::MoveVertical(float a_fDistance)
 {
 	//Tip:: Look at MoveForward
+	//position up/down, direction lifts target
+	m_v3Position += m_v3Upward * a_fDistance;
+	m_v3Target += m_v3Upward * a_fDistance;
 }
 void MyCamera::MoveSideways(float a_fDistance)
 {
 	//Tip:: Look at MoveForward
+	//position beside target
+	m_v3Position += m_v3Rightward * a_fDistance;
+	m_v3Target += m_v3Rightward * a_fDistance;
 }
 void MyCamera::CalculateView(void)
 {
@@ -40,6 +51,43 @@ void MyCamera::CalculateView(void)
 	//		 it will receive information from the main code on how much these orientations
 	//		 have change so you only need to focus on the directional and positional 
 	//		 vectors. There is no need to calculate any right click process or connections.
+
+	quaternion orientation;
+	orientation *= glm::angleAxis(m_v3PitchYawRoll.x, AXIS_X);
+	orientation *= glm::angleAxis(m_v3PitchYawRoll.y, AXIS_Y);
+	orientation *= glm::angleAxis(m_v3PitchYawRoll.z, AXIS_Z);
+
+	/*
+
+	// DOLAPO messes rotation after facing top & btm
+	//if (m_v3PitchYawRoll.x > 1.5)
+	//{
+	//	m_v3PitchYawRoll.x = 1.5;
+	//	std::cout << std::endl;
+	//}
+	//else if (m_v3PitchYawRoll.x < -1.5)
+	//{
+	//	m_v3PitchYawRoll.x = -1.5;
+	//	std::cout << std::endl;
+	//}
+	m_v3Target = glm::rotate(orientation, m_v3Forward);
+	m_v3Target += m_v3Position;
+
+	// DOLAPO not updating directional vectors
+	//set forward and rightward
+	//m_v3Forward = glm::normalize(m_v3Target);
+	m_v3Forward = glm::rotate(orientation, m_v3Forward);
+	// forward.x = pos.x
+	//quaternion rightWard = glm::angleAxis(glm::radians(90.0f), AXIS_Y);
+	//m_v3Rightward = glm::rotate(rightWard, m_v3Upward);
+
+	/*/
+	super::CalculateView(); 
+	// */
+
+	// use orientation, position and forward to set target
+	//changes target, forward and upward [to/from worldspace?] (and rightward?)
+
 	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Upward);
 }
 //You can assume that the code below does not need changes unless you expand the functionality
