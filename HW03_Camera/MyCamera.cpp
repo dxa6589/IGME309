@@ -57,6 +57,15 @@ void MyCamera::CalculateView(void)
 	orientation *= glm::angleAxis(m_v3PitchYawRoll.y, AXIS_Y);
 	orientation *= glm::angleAxis(m_v3PitchYawRoll.z, AXIS_Z);
 
+	m_v3Target = glm::rotate(orientation, m_v3Forward);
+	m_v3Target += m_v3Position;
+
+	//smth like this
+	m_v3Forward = glm::rotate(orientation, m_v3Forward);
+	m_v3Rightward = glm::rotate(m_v3Forward, 90.0f, AXIS_X);
+
+	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Upward);
+
 	/*
 
 	// DOLAPO messes rotation after facing top & btm
@@ -70,19 +79,19 @@ void MyCamera::CalculateView(void)
 	//	m_v3PitchYawRoll.x = -1.5;
 	//	std::cout << std::endl;
 	//}
-	m_v3Target = glm::rotate(orientation, m_v3Forward);
-	m_v3Target += m_v3Position;
+	//m_v3Target = glm::rotate(orientation, m_v3Forward);
+	//m_v3Target += m_v3Position;
 
 	// DOLAPO not updating directional vectors
 	//set forward and rightward
-	//m_v3Forward = glm::normalize(m_v3Target);
+	m_v3Forward = glm::normalize(m_v3Target);
 	m_v3Forward = glm::rotate(orientation, m_v3Forward);
 	// forward.x = pos.x
 	//quaternion rightWard = glm::angleAxis(glm::radians(90.0f), AXIS_Y);
 	//m_v3Rightward = glm::rotate(rightWard, m_v3Upward);
 
 	/*/
-	super::CalculateView(); 
+	 // super::CalculateView(); 
 	// */
 
 	// use orientation, position and forward to set target

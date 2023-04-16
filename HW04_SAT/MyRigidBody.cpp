@@ -24,7 +24,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	}
 
 	// translation vector
-	vector3 t = otherCen - m_v3Center;
+	vector3 t = otherCen - GetCenterGlobal();
 	t = vector3(glm::dot(t, myAxes[0]), glm::dot(t, myAxes[1]), glm::dot(t, myAxes[2]));
 
 	for (int i = 0; i < 3; i++) {
@@ -40,21 +40,75 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 		rb = otherHalfWidth[0] * AbsR[i][0]
 			+ otherHalfWidth[1] * AbsR[i][1]
 			+ otherHalfWidth[2] * AbsR[i][2];
-		if (glm::abs(t[i]) > ra + rb) return false;
+		float comp = glm::abs(t[i]);
+		if (comp > ra + rb) {
+			if (i == 0) return BTXs::eSATResults::SAT_AX;
+			else if (i == 1) return BTXs::eSATResults::SAT_AY;
+			else if (i == 2) return BTXs::eSATResults::SAT_AZ;
+		}
 	}	
+
 	// Bx, By, Bz
 	for (int i = 0; i < 3; i++) {
-		ra = m_v3HalfWidth[0] * AbsR[i][0]
-			+ m_v3HalfWidth[1] * AbsR[i][1]
-			+ m_v3HalfWidth[2] * AbsR[i][2];
+		ra = m_v3HalfWidth[0] * AbsR[0][i]
+			+ m_v3HalfWidth[1] * AbsR[1][i]
+			+ m_v3HalfWidth[2] * AbsR[2][i];
 		rb = otherHalfWidth[i];
-		if (glm::abs(t[i]) > ra + rb) return false;
-	}	
-	// planes
+		float comp = glm::abs(t[0] * R[0][i] + t[1] * R[1][i] + t[2] * R[2][i]);
+		if (comp > ra + rb)  {
+			if (i == 0) return BTXs::eSATResults::SAT_BX;
+			else if (i == 1) return BTXs::eSATResults::SAT_BY;
+			else if (i == 2) return BTXs::eSATResults::SAT_BZ;
+		}
+	}	 
+
 	// Ax*Bx Ax*By Ax*Bz
+	ra = m_v3HalfWidth[1] * AbsR[2][0] + m_v3HalfWidth[2] * AbsR[1][0];
+	rb = otherHalfWidth[1] * AbsR[0][2] + otherHalfWidth[2] * AbsR[0][1];
+	if (glm::abs(t[2] * R[1][0] - t[1] * R[2][0]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AXxBX;
+
+	ra = m_v3HalfWidth[1] * AbsR[2][1] + m_v3HalfWidth[2] * AbsR[1][1];
+	rb = otherHalfWidth[0] * AbsR[0][2] + otherHalfWidth[2] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][1] - t[1] * R[2][1]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AXxBY;
+
+	ra = m_v3HalfWidth[1] * AbsR[2][2] + m_v3HalfWidth[2] * AbsR[1][2];
+	rb = otherHalfWidth[0] * AbsR[0][1] + otherHalfWidth[1] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][2] - t[1] * R[2][2]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AXxBZ;
+
 	// Ay*Bx Ay*By Ay*Bz
+	ra = m_v3HalfWidth[0] * AbsR[2][0] + m_v3HalfWidth[2] * AbsR[0][0];
+	rb = otherHalfWidth[1] * AbsR[1][2] + otherHalfWidth[2] * AbsR[1][1];
+	if (glm::abs(t[0] * R[2][0] - t[2] * R[0][0]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AYxBX;
+
+	ra = m_v3HalfWidth[0] * AbsR[2][1] + m_v3HalfWidth[2] * AbsR[0][1];
+	rb = otherHalfWidth[0] * AbsR[1][2] + otherHalfWidth[2] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][1] - t[2] * R[0][1]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AYxBY;
+
+	ra = m_v3HalfWidth[0] * AbsR[2][2] + m_v3HalfWidth[2] * AbsR[0][2];
+	rb = otherHalfWidth[0] * AbsR[1][1] + otherHalfWidth[1] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][2] - t[2] * R[0][2]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AYxBZ;
+
 	// Az*Bx Az*By Az*Bz
-	// if 1 plane isn't colliding, return false
+	ra = m_v3HalfWidth[0] * AbsR[1][0] + m_v3HalfWidth[1] * AbsR[0][0];
+	rb = otherHalfWidth[1] * AbsR[2][2] + otherHalfWidth[2] * AbsR[2][1];
+	if (glm::abs(t[1] * R[0][0] - t[0] * R[1][0]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AZxBX;
+
+	ra = m_v3HalfWidth[0] * AbsR[1][1] + m_v3HalfWidth[1] * AbsR[0][1];
+	rb = otherHalfWidth[0] * AbsR[2][2] + otherHalfWidth[2] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][1] - t[0] * R[1][1]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AZxBY;
+
+	ra = m_v3HalfWidth[0] * AbsR[1][2] + m_v3HalfWidth[1] * AbsR[0][2];
+	rb = otherHalfWidth[0] * AbsR[2][1] + otherHalfWidth[1] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][2] - t[0] * R[1][2]) > ra + rb) 
+		return BTXs::eSATResults::SAT_AZxBZ;
 	
 	return BTXs::eSATResults::SAT_NONE;
 }
@@ -71,13 +125,20 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 	{
 		uint nResult = SAT(a_pOther);
 
-		if (bColliding) //The SAT shown they are colliding
+		if (nResult == 0) //The SAT shown they are colliding
 		{
 			this->AddCollisionWith(a_pOther);
 			a_pOther->AddCollisionWith(this);
 		}
 		else //they are not colliding
 		{
+			BTXs::eSATResults val = static_cast<BTXs::eSATResults>(nResult);
+			//std::cout << "_______________________" << std::endl;
+			//val = BTXs::eSATResults::SAT_AX;
+			//std::cout << "SAT detected: " << val << std::endl;
+			//val = BTXs::eSATResults::SAT_AY;
+			//std::cout << "SAT detected: " << val << std::endl;
+			//val = BTXs::eSATResults::SAT_AZ;
 			this->RemoveCollisionWith(a_pOther);
 			a_pOther->RemoveCollisionWith(this);
 		}
