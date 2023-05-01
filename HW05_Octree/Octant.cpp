@@ -129,7 +129,7 @@ void Octant::Subdivide(void)
 	if (m_uChildren != 0)
 		return;
 
-	//TODO Subdivide the space and allocate 8 children
+	//Subdivide the space and allocate 8 children
 
 	//If this node has less than the ideal entity count return without changes
 	if (!ContainsAtLeast(m_uIdealEntityCount))
@@ -144,90 +144,52 @@ void Octant::Subdivide(void)
 	childCenter.x = m_v3Center.x + (childSize / 2);
 	childCenter.y = m_v3Center.y + (childSize / 2);
 	childCenter.z = m_v3Center.z + (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[0] = child;
-	m_pChild[0]->Subdivide();
+	m_pChild[0] = new Octant(childCenter, childSize);
 
 	// x+, y+, z-
 	childCenter.z = m_v3Center.z - (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[1] = child;
-	m_pChild[1]->Subdivide();
+	m_pChild[1] = new Octant(childCenter, childSize);
 
 	// x+, y-, z+
 	childCenter.y = m_v3Center.y - (childSize / 2);
 	childCenter.z = m_v3Center.z + (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[2] = child;
-	m_pChild[2]->Subdivide();
+	m_pChild[2] = new Octant(childCenter, childSize);
 
 	// x+, y-, z-
 	childCenter.z = m_v3Center.z - (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[3] = child;
-	m_pChild[3]->Subdivide();
+	m_pChild[3] = new Octant(childCenter, childSize);
 
 	// x-, y+, z+
 	childCenter.x = m_v3Center.x - (childSize / 2);
 	childCenter.y = m_v3Center.y + (childSize / 2);
 	childCenter.z = m_v3Center.z + (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[4] = child;
-	m_pChild[4]->Subdivide();
+	m_pChild[4] = new Octant(childCenter, childSize);
 
 	// x-, y+, z-
 	childCenter.z = m_v3Center.z - (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[5] = child;
-	m_pChild[5]->Subdivide();
+	m_pChild[5] = new Octant(childCenter, childSize);
 
 	// x-, y-, z+
 	childCenter.y = m_v3Center.y - (childSize / 2);
 	childCenter.z = m_v3Center.z + (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[6] = child;
-	m_pChild[6]->Subdivide();
+	m_pChild[6] = new Octant(childCenter, childSize);
 
 	// x-, y-, z-
 	childCenter.z = m_v3Center.z - (childSize / 2);
-	child = new Octant(childCenter, childSize);
-	child->m_uLevel = childLevel;
-	child->m_uID = m_uOctantCount - 1;
-	child->m_pRoot = m_pRoot;
-	child->m_pParent = this;
-	m_pChild[7] = child;
-	m_pChild[7]->Subdivide();
+	m_pChild[7] = new Octant(childCenter, childSize);
 
-	//center, size, level, id, root, parent, child, entitiyList
 	m_uChildren = 8;
+
+	//set level, id, root, parent
+	for (uint i = 0; i < m_uChildren; i++)
+	{
+		Octant* child = m_pChild[i];
+		child->m_uLevel = m_uLevel + 1;
+		child->m_uID = m_uID + i;
+		child->m_pRoot = m_pRoot;
+		child->m_pParent = this;
+		child->Subdivide();
+	}
 }
 bool Octant::ContainsAtLeast(uint a_nEntities)
 {
